@@ -1,85 +1,47 @@
-import React,{useState} from "react"; 
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
+function App() {
+  const [cryptoData, setCryptoData] = useState([]);
 
-const App = () => {
-   const [latitude, setLatitude] = useState("");
-   const [longitude, setLongitude] = useState("");
-   const [hemisphere, setHemisphere] = useState("");
-   const [month, setMonth] = useState(1);
+  useEffect(() => {
+    axios.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en')
+      .then(response => {
+        setCryptoData(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching crypto data:', error);
+      });
+  }, []);
 
-
-
-      function getLocation(){
-           if(navigator.geolocation){
-                 navigator.geolocation.getCurrentPosition( (location) => {
-                    //  console.log(location);
-                    setLatitude(location.coords.latitude);
-                    setLongitude(location.coords.longitude);
-
-                    if(location.coords.latitude>0){
-                        setHemisphere("Northen Hemisphere");
-                   }
-                   else if(location.coords.latitude<0){
-                     setHemisphere("Southern Hemisphere");
-                   }
-                   else{
-                        setHemisphere("Equator");
-                    }
-              });
-           }
-
-               
-      }
-
-
-
-    return(
-    <div>
-        <h1>Latitude: {latitude}</h1>
-        <h1>Longitude: {longitude}</h1>
-           
-            <button onClick={getLocation}>Get Location</button>
-            {
-                (hemisphere=="Northen Hemisphere" && month>=2 && month<=9) || 
-                (hemisphere=="Southern Hemisphere" && (month<2 || month>9))
-                 ? 
-                (
-                    <div>
-                        <h1>It's Summer in the {hemisphere}</h1>
-                        <p>आया मौसम थंडे थंडे पावसाळे का</p>
-                        <img src="https://i.ytimg.com/vi/HzErgJjLN0A/maxresdefault.jpg"
-                        alt="summer"
-                        />
-                    </div>
-                ) : (
-                   ( hemisphere=="Northen Hemisphere" && (month<2 || month>9))
-                     ||  (hemisphere=="Southern Hemisphere" && month>=2 && month<=9)
-                    ? (
-                    <div>
-                        <h1>It's Winter in the {hemisphere}</h1>
-                        <p>आया मौसम ठंडा ठंडा पावसाळे का</p>
-                        <img src="https://pbs.twimg.com/media/DpePTTuWsAAxmhT.jpg" 
-                        alt="winter"
-                        />
-                    </div>
-                    ) : ( <h1>Relax we are fetching ... </h1>)
-
-                )
-            }
-    </div>
-    )
+  return (
+    <Container>
+      <h1>Crypto Tracker</h1>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Symbol</TableCell>
+              <TableCell>Current Price</TableCell>
+              <TableCell>Market Cap</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {cryptoData.map(crypto => (
+              <TableRow key={crypto.id}>
+                <TableCell>{crypto.name}</TableCell>
+                <TableCell>{crypto.symbol}</TableCell>
+                <TableCell>${crypto.current_price}</TableCell>
+                <TableCell>${crypto.market_cap.toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
+  );
 }
 
 export default App;
-
-
-
-// if(hemisphere == "Northen Hemisphere" && month>=2 && month<=9){
-//     console.log("Summer");
-// }
-// else if(hemisphere == "Northen Hemisphere" && (month<2 || month>9)){
-//     console.log("Winter");
-// }
-// else {
-//     console.log("Relax we are fetching ... ");
-// }
